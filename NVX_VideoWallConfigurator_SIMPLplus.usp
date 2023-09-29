@@ -1,0 +1,117 @@
+/*
+Dealer Name: IAV
+System Name: NVX_VideoWallConfigurator_SIMPLplus
+System Number: Rev 1.0
+Programmer: Sean Spiggle
+*/ 
+
+// Compiler Directives
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+#PRINT_TO_TRACE
+
+#HELP_BEGIN
+   NVX_VideoWallConfiruator_SIMPLplus
+   created by Sean A Spiggle on 09/29/2023
+   
+   Module Summary: This module takes in button presses for selecting Video Panels and for selecting input sources.
+   				   Digital ouptuts are for Video Panels and source inputs. Analog outputs are source selection and the 
+   				   Video Wall layout of the currently selected Panels. 
+   				   This module interfaces with the SIMPL# program "NVX_VideoWallConfigurator" which handles all the processing
+   				   and determining adjacent panels and the panel layout values. 
+   				   
+   				   This program operates with the following:
+   				   1) Crestron SIMPL# Program "NVX_VideoWallConfigurator.clz" 
+   				   2) 3-Series an above Crestron Control Processor
+   				   3) Crestron DM-NVX Receivers that support Video Wall capabilities. 
+   				   
+   				   
+  * The video_source_output gives values 1 - totalSources which should be sent to the NVX Video Source analog input in XIO Routing. 
+  * The panel_source_output gives a value of WHXY which should be sent to the NVX VideoMode analog input in HDMI out. 
+#HELP_END
+    
+// Libraries    
+#USER_SIMPLSHARP_LIBRARY "NVX_VideoWallConfigurator"
+    
+// Constants  
+#DEFINE_CONSTANT totalPanels 8
+#DEFINE_CONSTANT totalSources 7
+
+// Digital, Analog, Serial Inputs and Outputs
+DIGITAL_INPUT  video_wall_panel_input[totalPanels], 
+				_skip_,
+               video_source_input[totalSources];
+DIGITAL_OUTPUT video_wall_panel_output[totalPanels],
+				_skip_,
+               video_source_output[totalSources];
+ANALOG_OUTPUT  panel_source_output[totalPanels],
+				_skip_,
+               panel_layout_output[totalPanels];
+            
+// Declare instances of classes            
+VideoWall videoWall_splus;
+Panel panel_splus;  
+HighPanelInfo highPanel_splus;
+
+// Global Variables 
+INTEGER x, y; 
+INTEGER panel_pressed, panel_number;
+
+
+// Event handler for PUSH on video_wall_panel_input
+Threadsafe PUSH video_wall_panel_input
+{       
+    panel_pressed = GetLastModifiedArrayIndex();                  
+
+    // Call the VideoWall's SetPanel method based on the pressed panel:
+    videoWall_splus.SetPanel(panel_pressed);  
+    
+    // Iterate over all panels in the VideoWall to check their state
+    // and set the corresponding output in video_wall_panel_output:
+    for (y = 1 to 2) // HEIGHT
+    {
+        for (x = 1 to 4) // WIDTH
+        {
+            panel_number = (y - 1) * 4 + x;
+            if (videoWall_splus.GetIsHigh(x-1, y-1))
+            {
+                video_wall_panel_output[panel_number] = 1;
+             }
+            else
+            {
+                video_wall_panel_output[panel_number] = 0;
+            }
+        }
+    }  	
+}
+
+// Event handler for PUSH on video_source_input
+Threadsafe PUSH video_source_input
+{
+    integer source_pressed;  
+        
+    source_pressed = GetLastModifiedArrayIndex();
+
+    // Call the VideoWall's SetSourceForHighPanels method based on the pressed source:
+    videoWall_splus.RouteSourceToHighPanels(source_pressed);  
+    
+    // Iterate over all panels in the VideoWall to get their source
+    for (y = 1 to 2) // HEIGHT
+    {
+        for (x = 1 to 4) // WIDTH
+        {
+            panel_number = (y - 1) * 4 + x;          
+            
+            if (videoWall_splus.GetIsHigh(x-1, y-1))
+            {      
+              // Get the panel source and assign it to the corresponding output
+              panel_source_output[panel_number] = videoWall_splus.GetPanelSource(x-1, y-1); 
+                                
+              // Calculate and assign the panel layout value based on HighPanelInfo          
+              //Still working on resolving the warning of LONG_INTEGER to INTEGER. SAS on 9/29/23.  
+              panel_layout_output[panel_number] = (highPanel_splus.W*1000) + (highPanel_splus.H*100) + (highPanel_splus.X*10) + (highPanel_splus.Y);      													
+             }
+         }
+    }
+}

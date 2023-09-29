@@ -1,0 +1,22 @@
+<Device Model="CP3">
+   <Network Type="Cresnet" Id="01"/>
+   <Network Type="Ethernet" Id="02">
+      <Device Model="Core3 UI XPanel" DeviceId="03" Name="XPanel 2.0 Smart Graphics"/>
+      <Device Model="DM-NVX-E30" DeviceId="0A" Name="DM-NVX-E30 : Input_1"/>
+      <Device Model="DM-NVX-E30" DeviceId="0B" Name="DM-NVX-E30 : Input_2"/>
+      <Device Model="DM-NVX-E30" DeviceId="0C" Name="DM-NVX-E30 : Input_3"/>
+      <Device Model="DM-NVX-E30" DeviceId="0D" Name="DM-NVX-E30 : Input_4"/>
+      <Device Model="DM-NVX-E30" DeviceId="0E" Name="DM-NVX-E30 : Input_5"/>
+      <Device Model="DM-NVX-E30" DeviceId="0F" Name="DM-NVX-E30 : Input_6"/>
+      <Device Model="DM-NVX-E30" DeviceId="10" Name="DM-NVX-E30 : Input_7"/>
+      <Device Model="DM-NVX-E30" DeviceId="11" Name="DM-NVX-E30 : Input_8"/>
+      <Device Model="DM-NVX-36x" DeviceId="20" Name="DM-NVX-36x : Panel_1"/>
+      <Device Model="DM-NVX-36x" DeviceId="21" Name="DM-NVX-36x : Panel_2"/>
+      <Device Model="DM-NVX-36x" DeviceId="22" Name="DM-NVX-36x : Panel_3"/>
+      <Device Model="DM-NVX-36x" DeviceId="23" Name="DM-NVX-36x : Panel_4"/>
+      <Device Model="DM-NVX-36x" DeviceId="24" Name="DM-NVX-36x : Panel_5"/>
+      <Device Model="DM-NVX-36x" DeviceId="25" Name="DM-NVX-36x : Panel_6"/>
+      <Device Model="DM-NVX-36x" DeviceId="26" Name="DM-NVX-36x : Panel_7"/>
+      <Device Model="DM-NVX-36x" DeviceId="27" Name="DM-NVX-36x : Panel_8"/>
+   </Network>
+</Device>
