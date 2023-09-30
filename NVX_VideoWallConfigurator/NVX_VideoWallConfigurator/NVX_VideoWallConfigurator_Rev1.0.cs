@@ -1,10 +1,9 @@
 ﻿/*
  * NVX_VideoWallConfigurator_Rev1.0
- *Created by Sean A Spiggle on 09/27/2023. 
+ * Created by Sean A Spiggle on 09/27/2023. 
  
  Program Summary: This program takes in panel button presses and will set panels high or low accordingly.
-                  When a Video Input button is pressed, all high panels will get sent the video source and layout
-                  and position.
+                  When a Video Input button is pressed, all high panels will get sent the video source.
  
  This program operates with the following: 
  1) Crestron SIMPL+ Module "NVX_VideoWallConfigurator_SIMPLplus.usp
@@ -12,8 +11,7 @@
  3) Crestron DM-NVX Receivers that support Video Wall capabilities. 
   
 Input from SIMPL PLUS: Panel Button Presses, Video Input Button Presses
- Output to SIMPL PLUS: Panel Button Feedback, Video Input Button Feedback, 
-                      Panel Video Source, Panel Layout and Position
+ Output to SIMPL PLUS: Panel Button Feedback, Video Input Button Feedback, Panel Video Source
 */
 
 using System;
@@ -51,8 +49,15 @@ namespace NVX_VideoWallConfigurator
         {
             IsHigh = 0; // Set panel to 'Low' state.
         }
-    }
 
+        // Panel layout values
+        public ushort CurrentWidth { get; set; }
+        public ushort CurrentHeight { get; set; }
+        public ushort CurrentX { get; set; }
+        public ushort CurrentY { get; set; }
+
+        public int PanelLayout { get; set; }
+    }
 
     // Represents the entire video wall configuration.
     public class VideoWall
@@ -61,118 +66,8 @@ namespace NVX_VideoWallConfigurator
         private const int WallWidth = 4;
         private const int WallHeight = 2;
 
-        private List<HighPanelInfo> highPanelInfos = new List<HighPanelInfo>();
-
         // Delegate and event for indicating when a video input button is pressed.
         public delegate void VideoInputPressedHandler(int videoInput);
-        public event VideoInputPressedHandler OnVideoInputPressed;
-
-        // Method to get the height and width of the current high panel layout.
-        public void GetCurrentHighPanelLayout(out int currentHeight, out int currentWidth)
-        {
-            List<int> highPanels = GetHighPanels();
-
-            if (highPanels.Count == 0)
-            {
-                // If there are no high panels, set both height and width to 0.
-                currentHeight = 0;
-                currentWidth = 0;
-            }
-            else
-            {
-                // Initialize height and width to minimum values, then find the maximum row and column.
-                int minHeight = WallHeight;
-                int minWidth = WallWidth;
-
-                foreach (int panelNumber in highPanels)
-                {
-                    int x = (panelNumber - 1) % WallWidth;
-                    int y = (panelNumber - 1) / WallWidth;
-
-                    if (y < minHeight)
-                        minHeight = y;
-                    if (x < minWidth)
-                        minWidth = x;
-                }
-
-                currentHeight = highPanels.Max() / WallWidth - minHeight + 1;
-                currentWidth = highPanels.Max() % WallWidth - minWidth + 1;
-            }
-        }
-
-        public class HighPanelPosition
-        {
-            public int X { get; set; }
-            public int Y { get; set; }
-
-            public HighPanelPosition(int x, int y)
-            {
-                X = x;
-                Y = y;
-            }
-        }
-
-        // Represents the position of a high panel relative to the current layout.
-        public void GetHighPanelPositions(ref object highPanelPositions)
-        {
-            // Get the current high panel layout dimensions
-            int currentHeight, currentWidth;
-            GetCurrentHighPanelLayout(out currentHeight, out currentWidth);
-
-            // Get the list of high panels
-            List<int> highPanels = GetHighPanels();
-
-            // Create a list to store the positions of high panels
-            List<HighPanelInfo> highPanelInfos = new List<HighPanelInfo>();
-
-            // Iterate over the high panels and calculate their positions
-            foreach (int panelNumber in highPanels)
-            {
-                int x = (panelNumber - 1) % WallWidth;
-                int y = (panelNumber - 1) / WallWidth;
-
-                // Calculate the position relative to the current layout
-                int relativeX = x % currentWidth;
-                int relativeY = y % currentHeight;
-
-                // Create an instance of HighPanelInfo and populate it
-                HighPanelInfo panelInfo = new HighPanelInfo
-                {
-                    W = currentWidth,
-                    H = currentHeight,
-                    X = relativeX,
-                    Y = relativeY
-                };
-
-                highPanelInfos.Add(panelInfo);
-            }
-
-            // Assign the list of positions to the out parameter
-            highPanelPositions = highPanelInfos.ToArray();
-        }
-
-
-        //Method that handles the logic when a video input button is pressed.
-        //Routes input source and video wall layout to panel. 
-        public void VideoInputButtonPressed(int videoInput)
-        {
-            // Trigger the event to indicate that a video input button has been pressed.
-            VideoInputPressedHandler handler = OnVideoInputPressed;
-            if (handler != null)
-            {
-                handler(videoInput);
-            }
-
-            RouteSourceToHighPanels((ushort)videoInput);
-
-            // Get the current high panel layout dimensions
-            int currentHeight, currentWidth;
-            GetCurrentHighPanelLayout(out currentHeight, out currentWidth);
-
-            // Get the positions of high panels
-            object highPanelPositions = null;
-            GetHighPanelPositions(ref highPanelPositions);
-        }
 
         // 2D array representing all the panels.
         public Panel[,] Panels { get; private set; }
@@ -221,7 +116,6 @@ namespace NVX_VideoWallConfigurator
             return false;
         }
 
-
         // This method retrieves a list of panel numbers that are currently in the 'high' state.
         public List<int> GetHighPanels()
         {
@@ -265,6 +159,13 @@ namespace NVX_VideoWallConfigurator
             return Panels[x, y].Source;
         }
 
+        // Method to get the panel layout for a specified panel.
+        public int GetPanelLayout(int x, int y)
+        {
+            ValidateCoordinates(x, y);
+            return Panels[x, y].PanelLayout;
+        }
+
         // Method to set a panel and its neighbors to 'high' state based on a number.
         public void SetPanel(int number)
         {
@@ -291,27 +192,27 @@ namespace NVX_VideoWallConfigurator
             Panels[x, y].SetHigh();
         }
 
-    // Ensures that provided panel coordinates are valid and within bounds.
-    private void ValidateCoordinates(int x, int y)
-    {
-        if (x < 0 || x >= WallWidth || y < 0 || y >= WallHeight)
+        // Ensures that provided panel coordinates are valid and within bounds.
+        private void ValidateCoordinates(int x, int y)
         {
-            throw new ArgumentOutOfRangeException(
-                "x", 
-                "Invalid panel coordinates. X and Y must be within the range [0, {WallWidth - 1}] and [0, {WallHeight - 1}] respectively.");
+            if (x < 0 || x >= WallWidth || y < 0 || y >= WallHeight)
+            {
+                throw new ArgumentOutOfRangeException(
+                    "x",
+                    "Invalid panel coordinates. X and Y must be within the range [0, {WallWidth - 1}] and [0, {WallHeight - 1}] respectively.");
+            }
         }
-    }
 
-    // Ensures that the provided panel number is valid.
-    private void ValidatePanelNumber(int number)
-    {
-        if (number < 1 || number > (WallWidth * WallHeight))
+        // Ensures that the provided panel number is valid.
+        private void ValidatePanelNumber(int number)
         {
-            throw new ArgumentOutOfRangeException(
-                "number", 
-                "Invalid panel number. Panel number must be in the range [1, {WallWidth * WallHeight}].");
+            if (number < 1 || number > (WallWidth * WallHeight))
+            {
+                throw new ArgumentOutOfRangeException(
+                    "number",
+                    "Invalid panel number. Panel number must be in the range [1, {WallWidth * WallHeight}].");
+            }
         }
-    }
 
         // Reset the state of all panels to 'Low'.
         private void ResetAllPanels()
@@ -324,6 +225,55 @@ namespace NVX_VideoWallConfigurator
                 }
             }
         }
+
+        public void CalculateHighPanelLayout()
+        {
+            List<int> highPanels = GetHighPanels();
+
+            if (highPanels.Count == 0)
+            {
+                // If there are no high panels, reset the layout for all panels to 0.
+                foreach (var panel in Panels)
+                {
+                    panel.PanelLayout = 0;
+                }
+
+                return;
+            }
+
+            // Find the minimum and maximum X and Y coordinates of high panels.
+            int minX = highPanels.Min(panelNumber => (panelNumber - 1) % WallWidth);
+            int maxX = highPanels.Max(panelNumber => (panelNumber - 1) % WallWidth);
+            int minY = highPanels.Min(panelNumber => (panelNumber - 1) / WallWidth);
+            int maxY = highPanels.Max(panelNumber => (panelNumber - 1) / WallWidth);
+
+            int layoutWidth = maxX - minX + 1;
+            int layoutHeight = maxY - minY + 1;
+
+            for (int x = 0; x < WallWidth; x++)
+            {
+                for (int y = 0; y < WallHeight; y++)
+                {
+                    if (Panels[x, y].IsHigh == 1)
+                    {
+                        Panels[x, y].CurrentWidth = (ushort)layoutWidth;
+                        Panels[x, y].CurrentHeight = (ushort)layoutHeight;
+                        Panels[x, y].CurrentX = (ushort)((x - minX) % layoutWidth);
+                        Panels[x, y].CurrentY = (ushort)((y - minY) % layoutHeight);
+
+                        // Calculate the combined layout value.
+                        Panels[x, y].PanelLayout = Panels[x, y].CurrentWidth * 1000 + Panels[x, y].CurrentHeight * 100 + (Panels[x, y].CurrentX + 1) * 10 + Panels[x, y].CurrentY + 1;
+                    }
+                    else
+                    {
+                        // Reset the layout for low panels.
+                        Panels[x, y].PanelLayout = 0;
+                    }
+                }
+            }
+        }
+
+
     }
 
     // Represents a coordinate for a panel's position.
@@ -338,14 +288,5 @@ namespace NVX_VideoWallConfigurator
             X = x;
             Y = y;
         }
-    }
-
-    // Represents the dimensions and position of a high panel in the video wall.
-    public class HighPanelInfo
-    {
-        public int W { get; set; } // Width of the high panel layout.
-        public int H { get; set; } // Height of the high panel layout.
-        public int X { get; set; } // X position of the high panel relative to the layout.
-        public int Y { get; set; } // Y position of the high panel relative to the layout.
     }
 }

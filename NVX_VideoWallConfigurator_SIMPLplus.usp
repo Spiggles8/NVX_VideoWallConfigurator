@@ -52,7 +52,6 @@ ANALOG_OUTPUT  panel_source_output[totalPanels],
 // Declare instances of classes            
 VideoWall videoWall_splus;
 Panel panel_splus;  
-HighPanelInfo highPanel_splus;
 
 // Global Variables 
 INTEGER x, y; 
@@ -89,12 +88,15 @@ Threadsafe PUSH video_wall_panel_input
 // Event handler for PUSH on video_source_input
 Threadsafe PUSH video_source_input
 {
-    integer source_pressed;  
+    integer source_pressed;    
         
     source_pressed = GetLastModifiedArrayIndex();
 
     // Call the VideoWall's SetSourceForHighPanels method based on the pressed source:
-    videoWall_splus.RouteSourceToHighPanels(source_pressed);  
+    videoWall_splus.RouteSourceToHighPanels(source_pressed);   
+    
+    // Trigger the calculation of PanelLayout in SIMPL#
+    videoWall_splus.CalculateHighPanelLayout();
     
     // Iterate over all panels in the VideoWall to get their source
     for (y = 1 to 2) // HEIGHT
@@ -106,12 +108,11 @@ Threadsafe PUSH video_source_input
             if (videoWall_splus.GetIsHigh(x-1, y-1))
             {      
               // Get the panel source and assign it to the corresponding output
-              panel_source_output[panel_number] = videoWall_splus.GetPanelSource(x-1, y-1); 
-                                
-              // Calculate and assign the panel layout value based on HighPanelInfo          
-              //Still working on resolving the warning of LONG_INTEGER to INTEGER. SAS on 9/29/23.  
-              panel_layout_output[panel_number] = (highPanel_splus.W*1000) + (highPanel_splus.H*100) + (highPanel_splus.X*10) + (highPanel_splus.Y);      													
-             }
+              panel_source_output[panel_number] = videoWall_splus.GetPanelSource(x-1, y-1);
+
+    		  // Assign PanelLayout to the corresponding output
+    		  panel_layout_output[panel_number] = videoWall_splus.GetPanelLayout(x-1, y-1); // Assuming you have only one panel_layout_output  
+            }
          }
     }
 }

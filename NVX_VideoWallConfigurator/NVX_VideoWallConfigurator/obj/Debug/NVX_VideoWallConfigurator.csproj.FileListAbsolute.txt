@@ -6,3 +6,11 @@ C:\Users\Sean S\Documents\test\NVX_VideoWallConfigurator\NVX_VideoWallConfigurat
 C:\Users\Sean S\Documents\test\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\obj\Debug\ResolveAssemblyReference.cache
 C:\Users\Sean S\Documents\test\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\obj\Debug\NVX_VideoWallConfigurator.dll
 C:\Users\Sean S\Documents\test\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\obj\Debug\NVX_VideoWallConfigurator.pdb
+C:\Users\Sean S\Documents\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\bin\Debug\NVX_VideoWallConfigurator.dll
+C:\Users\Sean S\Documents\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\bin\Debug\NVX_VideoWallConfigurator.pdb
+C:\Users\Sean S\Documents\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\bin\Debug\SimplSharpCustomAttributesInterface.dll
+C:\Users\Sean S\Documents\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\bin\Debug\SimplSharpHelperInterface.dll
+C:\Users\Sean S\Documents\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\bin\Debug\Newtonsoft.Json.Compact.dll
+C:\Users\Sean S\Documents\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Sean S\Documents\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\obj\Debug\NVX_VideoWallConfigurator.dll
+C:\Users\Sean S\Documents\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\NVX_VideoWallConfigurator\obj\Debug\NVX_VideoWallConfigurator.pdb
