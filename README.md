@@ -65,3 +65,7 @@ Included in this repository are sample Simpl Windows and VTPro programs that dem
 ## Future Updates
 - I will continue modifying this to include functionality to more easily adjust the video wall size and dimensions
 - Still working on testing with more systems and equipment to work out any bugs. 
+
+## Revision History
+- Rev1.1 => corrected panel layout output not correctly sending proper values. Tested on RMC4.
+- 
